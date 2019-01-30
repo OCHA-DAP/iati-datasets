@@ -18,3 +18,4 @@ Country codes and names come courtesy of OCHA Digital Services. The
 original data is here:
 https://data.humdata.org/dataset/countries-and-territories-beta
 
+IATI financial data comes from D-Portal: http://www.d-portal.org
