@@ -1,8 +1,11 @@
 import config
-import ckanapi, json, logging, os, re
+import ckanapi, copy, json, logging, os, re, time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("create-iati-datasets")
+
+# How many seconds do we pause between API calls?
+PAUSE = 2
 
 # Get script directory (for loading local JSON files)
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -28,9 +31,10 @@ for country in countries['data']:
 
     # Skip if there's no ISO2 code
     if not country['iso2']:
+        logger.warning("skipping %s (no ISO2 code)", iso2)
         continue
 
-    # Country tombstone data
+    # Grab the country tombstone data
     name = country['label']['default']
     iso2 = country['iso2'].lower()
     iso3 = country['iso3'].lower()
@@ -41,7 +45,7 @@ for country in countries['data']:
         continue
 
     # Copy the template
-    package = dict(template)
+    package = copy.deepcopy(template)
 
     # Do the template substitutions for this country
     package["name"] = package["name"].replace("{{ISO3}}", iso3)
@@ -54,4 +58,14 @@ for country in countries['data']:
             resource[key] = resource[key].replace("{{NAME}}", name)
         resource["url"] = resource["url"].replace("{{ISO2}}", iso2)
 
-    print(package)
+    # Do we have an existing package?
+    try:
+        old = ckan.action.package_show(id=package["name"])
+        logger.info("Updating existing dataset %s", package["name"])
+        ckan.call_action('package_update', package)
+    except ckanapi.errors.NotFound:
+        logger.info("Creating new dataset %s", package["name"])
+        ckan.call_action('package_create', package)
+
+    # Give CKAN a chance to catch its breath
+    time.sleep(PAUSE)
