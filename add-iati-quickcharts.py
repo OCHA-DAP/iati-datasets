@@ -1,6 +1,6 @@
 """2019-02-05 enable Quick Charts for IATI datasets"""
 
-import ckancrawler, copy, logging, re, time
+import ckanapi, ckancrawler, copy, logging, re, time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("add-quickcharts")
@@ -76,10 +76,9 @@ def add_quickcharts(ckan, package, dataset_type, iso3):
         "title": "Quick Charts",
         "description": "",
         "view_type": "hdx_hxl_preview",
+        "hxl_preview_config": quickcharts_configurations[dataset_type],
     }
-    import json
     ckan.call_action("resource_view_create", view)
-    add_quickcharts(ckan, package, dataset_type, iso3) # recurse
 
 def try_patterns(ckan, package):
     """Match a dataset short name against all known patterns.
@@ -113,4 +112,4 @@ def scan_datasets(ckanurl, apikey, delay=1):
 #
 if __name__ == '__main__':
     from config import CONFIG
-    scan_datasets(CONFIG['ckanurl'], CONFIG['apikey'], DEFAULT_DELAY);
+    scan_datasets(CONFIG['ckanurl'], CONFIG['apikey'], DEFAULT_DELAY)
