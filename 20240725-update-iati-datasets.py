@@ -3,6 +3,7 @@
 - use TLS/SSL (https) for all upstream datasets
 - add link to IATI geographical-precision codelist
 - provide a distinct, human-readable name for downloads (e.g. "iati-gin.csv" rather than "data.csv")
+- switch to https: link for d-portal in description
 
 """
 
@@ -54,8 +55,13 @@ def update_dataset(crawler, iso3, package):
     # Use the new HXL Proxy recipe as the URL, replacing params as needed
     package["url"] = URL_PATTERN.format(iso3=iso3, iso2=iso2)
 
+    # Use https: link for d-portal and skip the www
+    package["notes"] = package["notes"].replace('http:', 'https:')
+    package["notes"] = package["notes"].replace('www.d-portal.org', 'd-portal.org')
+
     # Add a link to IATI geographical-precision dataset
-    package["notes"] += "\n\nDefinitions for the geographical-precision codes are available at https://iatistandard.org/en/iati-standard/203/codelists/geographicalprecision/"
+    if "geographical-precision" not in package["notes"]:
+        package["notes"] += "\n\nDefinitions for the geographical-precision codes are available at https://iatistandard.org/en/iati-standard/203/codelists/geographicalprecision/"
 
     # Update the dataset on HDX
     crawler.ckan.call_action('package_update', package)
